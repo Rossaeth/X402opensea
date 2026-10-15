@@ -7,6 +7,8 @@ export async function GET() {
   const svmPayTo = process.env.X402_SOLANA_PAY_TO;
   const paymentsConfigured = Boolean(evmPayTo && /^0x[a-fA-F0-9]{40}$/.test(evmPayTo) && svmPayTo && svmPayTo.trim().length > 20);
   const paymentsEnabled = process.env.X402_PAYMENTS_ENABLED === "true";
+  const livePaymentsReady = paymentsEnabled && paymentsConfigured;
+  const paymentsEnabled = process.env.X402_PAYMENTS_ENABLED === "true";
   const readyToCharge = paymentsEnabled && paymentsConfigured;
 
   return NextResponse.json({
@@ -18,7 +20,7 @@ export async function GET() {
     price: paymentsEnabled ? "Endpoint-specific x402 pricing" : "Free during development",
     networks: [
       { id: "eip155:8453", name: "Base", asset: "USDC", enabled: readyToCharge },
-      { id: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", name: "Solana Mainnet", asset: "USDC", enabled: paymentsConfigured },
+      { id: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp", name: "Solana Mainnet", asset: "USDC", enabled: livePaymentsReady },
       { id: "eip155:5042002", name: "Arc Testnet", asset: "USDC", enabled: false, note: "UI preview only; not configured in payment middleware" }
     ],
     evmEnabled: readyToCharge,
