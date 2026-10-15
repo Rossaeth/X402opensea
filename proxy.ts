@@ -28,7 +28,6 @@ const paymentHandler = evmValid && svmValid
           ],
           description: "Unlock demo digital collectible access",
           mimeType: "application/json",
-          maxTimeoutSeconds: 120,
         },
       },
       paymentServer,
