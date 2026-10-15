@@ -183,6 +183,22 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
           description: "Get on-chain transaction data to accept an OpenSea offer; seller wallet must sign and submit it",
           mimeType: "application/json",
         },
+        "/api/opensea/buy-actions": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Prepare transaction data to buy an OpenSea NFT listing; buyer signs with their own wallet",
+          mimeType: "application/json",
+        },
+        "/api/opensea/sell-actions": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Prepare transaction data to accept an OpenSea offer; seller signs with their own wallet",
+          mimeType: "application/json",
+        },
         "/api/paid": {
           accepts: [
             { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
