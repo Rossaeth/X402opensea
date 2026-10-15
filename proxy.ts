@@ -34,6 +34,62 @@ const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
           description: "Fetch OpenSea collection listings",
           mimeType: "application/json",
         },
+        "/api/opensea/collection-details": {
+          accepts: [
+            { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.01", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch OpenSea collection metadata",
+          mimeType: "application/json",
+        },
+        "/api/opensea/collection-stats": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch OpenSea collection statistics",
+          mimeType: "application/json",
+        },
+        "/api/opensea/activity": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch OpenSea collection sales and activity events",
+          mimeType: "application/json",
+        },
+        "/api/opensea/listings": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch OpenSea collection listings",
+          mimeType: "application/json",
+        },
+        "/api/opensea/offers": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch OpenSea collection offers",
+          mimeType: "application/json",
+        },
+        "/api/opensea/wallet-nfts": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch NFTs owned by a wallet from OpenSea",
+          mimeType: "application/json",
+        },
+        "/api/opensea/nft-details": {
+          accepts: [
+            { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.01", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch an OpenSea NFT by contract and token ID",
+          mimeType: "application/json",
+        },
         "/api/paid": {
           accepts: [
             { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
@@ -97,7 +153,7 @@ const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
   : null;
 
 export async function proxy(request: NextRequest) {
-  const protectedPaths = ["/api/paid", "/api/opensea/collections"];
+  const protectedPaths = ["/api/paid", "/api/opensea/collections", "/api/opensea/collection-details", "/api/opensea/collection-stats", "/api/opensea/activity", "/api/opensea/listings", "/api/opensea/offers", "/api/opensea/wallet-nfts", "/api/opensea/nft-details"];
   if (protectedPaths.includes(request.nextUrl.pathname) && !paymentHandler) {
     return NextResponse.json(
       {
@@ -113,4 +169,4 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/api/paid", "/api/opensea/collections"] };
+export const config = { matcher: ["/api/paid", "/api/opensea/collections", "/api/opensea/collection-details", "/api/opensea/collection-stats", "/api/opensea/activity", "/api/opensea/listings", "/api/opensea/offers", "/api/opensea/wallet-nfts", "/api/opensea/nft-details"] };
