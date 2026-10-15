@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { paymentProxy } from "@x402/next";
-import { HTTPFacilitatorClient, x402ResourceServer } from "@x402/core/server";
+import { x402ResourceServer } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
+import { createCdpFacilitatorClient } from "@coinbase/cdp-sdk/x402";
 
 const evmPayTo = process.env.X402_EVM_PAY_TO;
 const svmPayTo = process.env.X402_SOLANA_PAY_TO;
-const facilitatorUrl = process.env.X402_FACILITATOR_URL || "https://x402.org/facilitator";
+const cdpCredentialsConfigured = Boolean(process.env.CDP_API_KEY_ID && process.env.CDP_API_KEY_SECRET);
 const evmValid = Boolean(evmPayTo && /^0x[a-fA-F0-9]{40}$/.test(evmPayTo));
 const svmValid = Boolean(svmPayTo && svmPayTo.trim().length > 20);
 
@@ -14,14 +15,15 @@ const svmValid = Boolean(svmPayTo && svmPayTo.trim().length > 20);
 const SOLANA_MAINNET = "solana:mainnet";
 
 const paymentServer = (() => {
-  const facilitator = new HTTPFacilitatorClient({ url: facilitatorUrl });
+  // Coinbase CDP hosted facilitator authenticates verify/settle requests with CDP API credentials.
+  const facilitator = createCdpFacilitatorClient();
   const server = new x402ResourceServer(facilitator);
   server.register("eip155:8453", new ExactEvmScheme());
   server.register(SOLANA_MAINNET, new ExactSvmScheme());
   return server;
 })();
 
-const paymentHandler = evmValid && svmValid
+const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
   ? paymentProxy(
       {
         "/api/paid": {
@@ -90,8 +92,9 @@ export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname === "/api/paid" && !paymentHandler) {
     return NextResponse.json(
       {
-        error: "x402 payments are disabled until X402_EVM_PAY_TO and X402_SOLANA_PAY_TO are configured. No payment was taken.",
+        error: "x402 payments are disabled until X402_EVM_PAY_TO, X402_SOLANA_PAY_TO, CDP_API_KEY_ID, and CDP_API_KEY_SECRET are configured. No payment was taken.",
         configured: false,
+        facilitator: "Coinbase CDP",
       },
       { status: 503 },
     );
