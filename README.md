@@ -1,32 +1,35 @@
 # x402 OpenSea
 
-A Next.js marketplace starter for x402 v2. The UI is a marketplace concept; payments must not be presented as successful until the server verifies the x402 payment payload.
+A Next.js marketplace starter using the x402 v2 HTTP payment protocol.
 
-## Networks planned
+## Networks
 
-- Base mainnet USDC — CAIP-2 `eip155:8453`
-- Solana mainnet USDC — CAIP-2 `solana:mainnet`
-- Arc is represented as **Arc Testnet** (`eip155:5042002`) until the desired Arc network and USDC contract are confirmed. Do not label it Arc mainnet without verifying the chain.
+- Base mainnet USDC (eip155:8453): enabled by server middleware when configured.
+- Solana mainnet USDC (solana:mainnet): enabled by server middleware when configured.
+- Arc is displayed as Arc Testnet in the UI but is not enabled for payment. Confirm the target Arc network, USDC asset and facilitator support before enabling it.
 
-## Environment variables
+The sample item costs 0.01 USDC. Listings and artwork are demonstration content, not actual NFTs.
 
-Set these in Vercel Project Settings → Environment Variables:
+## Configure Vercel
 
-- `X402_EVM_PAY_TO`: receiving EVM address, e.g. a valid `0x...` address you control
-- `X402_SOLANA_PAY_TO`: receiving Solana address you control
-- Configure a supported x402 v2 facilitator and register EVM/Solana exact schemes before enabling paid endpoints.
+In Vercel Project Settings, add these environment variables:
 
-Never commit private keys, seed phrases, or API secrets.
+- X402_EVM_PAY_TO: your receiving EVM wallet address for Base.
+- X402_SOLANA_PAY_TO: your receiving Solana wallet address.
+- X402_FACILITATOR_URL (optional): facilitator URL; defaults to https://x402.org/facilitator.
 
-## Current implementation status
+Redeploy after setting environment variables. Use only wallet addresses you control. Never commit private keys, seed phrases or API secrets.
 
-- Marketplace landing page: implemented.
-- Status endpoint: `GET /api/status`.
-- Paid resource placeholder: `GET /api/paid` returns HTTP 503 until server-side x402 middleware and receiving addresses are configured.
-- No fake payment success: the current placeholder does not claim that funds were received.
+## Payment behavior
+
+- GET /api/status reports configuration.
+- GET /api/paid is protected by x402 v2 middleware and requests 0.01 USDC on Base or Solana.
+- If receiving addresses are missing, the route returns HTTP 503 and states that payment is disabled.
+- The UI does not claim a payment succeeded unless the server middleware verifies and settles it.
+- Arc payment selection is informational only until a supported network and facilitator configuration are verified.
 
 ## Deploy
 
-Import this repository into Vercel with the project root set to the repository root. Framework preset: Next.js. Build command: `npm run build`. Install command: `npm install`.
+Import this repository into Vercel as a Next.js project with the repository root as project root. Install command: npm install. Build command: npm run build.
 
-The paid route must remain disabled until a real facilitator-backed x402 v2 verification flow is installed and tested on the target networks.
+Official protocol reference: https://github.com/x402-foundation/x402
