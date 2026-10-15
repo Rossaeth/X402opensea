@@ -71,7 +71,7 @@ export default function Home() {
             <p style={{margin:"8px 0 4px",fontWeight:700}}>Collections</p>
             <p style={{fontSize:"13px",overflowWrap:"anywhere"}}>/api/opensea/collections?chain=base&amp;limit=6</p>
             <p style={{fontSize:"13px",opacity:.75}}>Fetch collection names, image URLs, descriptions and OpenSea links. Chains: ethereum, base, polygon, arbitrum, optimism, solana. Limit: 1–20.</p>
-            <a href="/api/opensea/collections?chain=base&limit=6" target="_blank" rel="noreferrer">Try collections endpoint ↗</a>
+            <a href={"/api/opensea/collections?chain=base&limit=6"} target="_blank" rel="noreferrer">Try collections endpoint ↗</a>
           </div>
           <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
             <span className="protocol">GET · SERVICE STATUS</span>
@@ -98,7 +98,7 @@ export default function Home() {
             <span className="protocol">GET · NFT DATA</span>
             <p style={{margin:"8px 0 4px",fontWeight:700}>Trending collections</p>
             <p style={{fontSize:"13px"}}>/api/opensea/trending</p>
-            <a href="/api/opensea/trending?chain=ethereum&limit=10" target="_blank" rel="noreferrer">Try trending endpoint ↗</a>
+            <a href={"/api/opensea/trending?chain=ethereum&limit=10"} target="_blank" rel="noreferrer">Try trending endpoint ↗</a>
           </div>
           <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
             <span className="protocol">GET · COLLECTION ANALYTICS</span>
