@@ -34,6 +34,15 @@ const limit: Property = {
   maximum: 100,
 };
 const address: Property = { type: "string", description: "Public wallet address." };
+const WIDGET_URI = "ui://x402opensea/nft-market.html";
+const WIDGET_HTML = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+*{box-sizing:border-box}body{margin:0;padding:14px;background:#0b0e0c;color:#f4f6f1;font:13px Inter,system-ui,sans-serif}.head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.brand{font-weight:800;font-size:17px}.brand b{color:#b6ff77}.pill{font-size:9px;color:#b6ff77;border:1px solid #34462e;border-radius:20px;padding:6px 8px}h1{font-size:23px;letter-spacing:-.8px;margin:8px 0}p{font-size:12px;line-height:1.5;color:#9ca79b;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}.card{border:1px solid #ffffff19;border-radius:9px;background:#121713;overflow:hidden}.image{height:145px;background:linear-gradient(135deg,#243f27,#101711);display:grid;place-items:center;color:#b6ff77;font-size:42px}.image img{width:100%;height:100%;object-fit:cover}.body{padding:10px}.name{font-weight:750;font-size:12px;line-height:1.4;overflow-wrap:anywhere}.meta{font-size:10px;color:#8a9689;margin-top:5px}.link{display:inline-block;margin-top:10px;color:#b6ff77;font-size:11px;text-decoration:none}.status{border:1px solid #2c3a2b;background:#101610;border-radius:8px;padding:13px;color:#b6c5b2;font-size:12px}.foot{margin-top:12px;padding-top:10px;border-top:1px solid #ffffff15;color:#748071;font-size:9px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}@media(max-width:380px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.image{height:115px}}
+</style></head><body><div class="head"><div class="brand">✳ X402<b>SEA</b></div><span class="pill">OPENSEA DATA</span></div><h1 id="title">NFT market results</h1><p id="desc">Actual collection and NFT metadata returned by X402 OpenSea.</p><div id="status" class="status">Waiting for the tool result…</div><div id="grid" class="grid"></div><div class="foot"><span>Read-only market research</span><span>x402 payments remain disabled</span></div><script>
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function arrOf(x){if(!x||typeof x!=="object")return[];for(const k of ["collections","nfts","assets","results","items"])if(Array.isArray(x[k]))return x[k];if(x.data&&typeof x.data==="object")return arrOf(x.data);return[]}
+function render(out){if(!out)return;let data=out.structuredContent||out;let raw=data.data||data;let rows=arrOf(raw);document.getElementById("title").textContent=data.view==="nfts"||data.slug?"NFTs in collection": "Top NFT collections";document.getElementById("desc").textContent="Live metadata from the X402 OpenSea API. Images and names reflect API data.";let status=document.getElementById("status");status.style.display=rows.length?"none":"block";status.textContent=rows.length?"":"No NFT list found in the returned response. Ask the assistant to inspect collection details.";document.getElementById("grid").innerHTML=rows.map((x,i)=>{let name=x.name||x.collection||x.title||x.identifier||x.slug||("NFT "+(i+1));let img=x.image_url||x.image||x.display_image_url||x.thumbnail_url;let url=x.opensea_url||x.permalink||(x.slug?"https://opensea.io/collection/"+encodeURIComponent(x.slug):"https://opensea.io");let floor=x.floor_price??x.floorPrice;let network=x.chain||x.network||"";return '<article class="card"><div class="image">'+(img?'<img src="'+esc(img)+'" alt="'+esc(name)+'" loading="lazy" onerror="this.remove()">':'✳')+'</div><div class="body"><div class="name">'+esc(name)+'</div><div class="meta">'+esc(network)+(floor!=null?" · Floor "+esc(floor):"")+'</div><a class="link" target="_blank" rel="noreferrer" href="'+esc(url)+'">View on OpenSea ↗</a></div></article>'}).join("")}
+if(window.openai&&window.openai.toolOutput)render(window.openai.toolOutput);window.addEventListener("message",e=>{if(e.data&&e.data.type==="openai:tool_output")render(e.data.output)});
+</script></body></html>`;
 
 const TOOLS: ToolDefinition[] = [
   {
@@ -115,6 +124,14 @@ const TOOLS: ToolDefinition[] = [
       limit,
       next: { type: "string", description: "OpenSea pagination cursor, if available." },
     },
+  },
+  {
+    name: "nfts_in_collection",
+    title: "NFTs in a collection",
+    description: "Fetch real NFT artwork and metadata from a named OpenSea collection. This is a read-only research tool; it does not purchase or list NFTs.",
+    path: "/api/opensea/nfts",
+    required: ["slug"],
+    properties: { slug, limit: { ...limit, maximum: 10, default: 6 }, next: { type: "string", description: "OpenSea pagination cursor, if available." } },
   },
   {
     name: "top_collections",
@@ -225,6 +242,12 @@ export async function POST(request: Request) {
     return new Response(null, { status: 202 });
   }
   if (method === "ping") return jsonRpc(id, {});
+  if (method === "resources/list") return jsonRpc(id, { resources: [{ uri: WIDGET_URI, name: "X402 OpenSea NFT Market", title: "X402 OpenSea NFT Market", description: "Visual NFT cards for in-chat display.", mimeType: "text/html+skybridge", _meta: { "openai/widgetPrefersBorder": true, "openai/widgetCSP": { resource_domains: ["https://opensea.io", "https://i.seadn.io", "https://static.opensea.io"] } } }] });
+  if (method === "resources/read") {
+    const params = isRecord(body.params) ? body.params : {};
+    if (params.uri !== WIDGET_URI) return rpcError(id, -32602, "Unknown resource URI.");
+    return jsonRpc(id, { contents: [{ uri: WIDGET_URI, mimeType: "text/html+skybridge", text: WIDGET_HTML, _meta: { "openai/widgetPrefersBorder": true, "openai/widgetCSP": { resource_domains: ["https://opensea.io", "https://i.seadn.io", "https://static.opensea.io"] } } }] });
+  }
   if (method === "initialize") {
     return jsonRpc(id, {
       protocolVersion: typeof body.params === "object" && body.params && "protocolVersion" in body.params
@@ -248,6 +271,7 @@ export async function POST(request: Request) {
           required: tool.required ?? [],
           additionalProperties: false,
         },
+        ...(["top_collections", "trending_collections", "nfts_in_collection", "opensea_collections"].includes(tool.name) ? { _meta: { "openai/outputTemplate": WIDGET_URI, "openai/widgetAccessible": true, "openai/toolInvocation/invoking": "Loading NFT market data…", "openai/toolInvocation/invoked": "NFT market data loaded" } } : {}),
       })),
     });
   }
@@ -322,6 +346,13 @@ export async function POST(request: Request) {
       }, null, 2), true));
     }
 
+    if (["top_collections", "trending_collections", "nfts_in_collection", "opensea_collections"].includes(tool.name)) {
+      return jsonRpc(id, {
+        content: [{ type: "text", text: `Loaded real OpenSea data using ${tool.title}.` }],
+        structuredContent: { view: tool.name === "nfts_in_collection" ? "nfts" : "collections", tool: tool.name, slug: typeof args.slug === "string" ? args.slug : undefined, chain: typeof args.chain === "string" ? args.chain : undefined, data: payload },
+        _meta: { "openai/outputTemplate": WIDGET_URI }
+      });
+    }
     return jsonRpc(id, textResult(JSON.stringify(payload, null, 2)));
   } catch (error) {
     return jsonRpc(id, textResult(JSON.stringify({
