@@ -151,6 +151,38 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
           description: "Fetch active offers made by an account",
           mimeType: "application/json",
         },
+        "/api/opensea/listing-actions": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Get wallet approval and signing steps to create an NFT listing on OpenSea",
+          mimeType: "application/json",
+        },
+        "/api/opensea/listing-submit": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Submit a wallet-signed NFT listing to OpenSea",
+          mimeType: "application/json",
+        },
+        "/api/opensea/buy-actions": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Get on-chain transaction data to buy an OpenSea listing; buyer wallet must sign and submit it",
+          mimeType: "application/json",
+        },
+        "/api/opensea/sell-actions": {
+          accepts: [
+            { scheme: "exact", price: "$0.02", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.02", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Get on-chain transaction data to accept an OpenSea offer; seller wallet must sign and submit it",
+          mimeType: "application/json",
+        },
         "/api/paid": {
           accepts: [
             { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
@@ -168,7 +200,7 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
   : null;
 
 export async function proxy(request: NextRequest) {
-  const protectedPaths = ["/api/paid","/api/opensea/collections","/api/opensea/collection-details","/api/opensea/collection-stats","/api/opensea/activity","/api/opensea/listings","/api/opensea/offers","/api/opensea/wallet-nfts","/api/opensea/nft-details","/api/opensea/trending","/api/opensea/top-collections","/api/opensea/floor-prices","/api/opensea/wallet-portfolio","/api/opensea/wallet-listings","/api/opensea/wallet-offers"];
+  const protectedPaths = ["/api/opensea/listing-actions","/api/opensea/listing-submit","/api/opensea/buy-actions","/api/opensea/sell-actions","/api/paid","/api/opensea/collections","/api/opensea/collection-details","/api/opensea/collection-stats","/api/opensea/activity","/api/opensea/listings","/api/opensea/offers","/api/opensea/wallet-nfts","/api/opensea/nft-details","/api/opensea/trending","/api/opensea/top-collections","/api/opensea/floor-prices","/api/opensea/wallet-portfolio","/api/opensea/wallet-listings","/api/opensea/wallet-offers"];
   if (protectedPaths.includes(request.nextUrl.pathname) && !paymentHandler) {
     return NextResponse.json(
       {
@@ -184,4 +216,4 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/api/paid","/api/opensea/collections","/api/opensea/collection-details","/api/opensea/collection-stats","/api/opensea/activity","/api/opensea/listings","/api/opensea/offers","/api/opensea/wallet-nfts","/api/opensea/nft-details","/api/opensea/trending","/api/opensea/top-collections","/api/opensea/floor-prices","/api/opensea/wallet-portfolio","/api/opensea/wallet-listings","/api/opensea/wallet-offers"] };
+export const config = { matcher: ["/api/opensea/listing-actions","/api/opensea/listing-submit","/api/opensea/buy-actions","/api/opensea/sell-actions","/api/paid","/api/opensea/collections","/api/opensea/collection-details","/api/opensea/collection-stats","/api/opensea/activity","/api/opensea/listings","/api/opensea/offers","/api/opensea/wallet-nfts","/api/opensea/nft-details","/api/opensea/trending","/api/opensea/top-collections","/api/opensea/floor-prices","/api/opensea/wallet-portfolio","/api/opensea/wallet-listings","/api/opensea/wallet-offers"] };
