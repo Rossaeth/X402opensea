@@ -3,27 +3,28 @@ import { paymentProxy } from "@x402/next";
 import { x402ResourceServer } from "@x402/core/server";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
-import { createCdpFacilitatorClient } from "@coinbase/cdp-sdk/x402";
+import { HTTPFacilitatorClient } from "@x402/core/server";
+import { facilitator } from "@payai/facilitator";
 
 const evmPayTo = process.env.X402_EVM_PAY_TO;
 const svmPayTo = process.env.X402_SOLANA_PAY_TO;
-const cdpCredentialsConfigured = Boolean(process.env.CDP_API_KEY_ID && process.env.CDP_API_KEY_SECRET);
+const facilitatorConfigured = true;
 const evmValid = Boolean(evmPayTo && /^0x[a-fA-F0-9]{40}$/.test(evmPayTo));
 const svmValid = Boolean(svmPayTo && svmPayTo.trim().length > 20);
 
 // CAIP-2 identifier for Solana mainnet-beta.
-const SOLANA_MAINNET = "solana:mainnet";
+const SOLANA_MAINNET = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
 
 const paymentServer = (() => {
-  // Coinbase CDP hosted facilitator authenticates verify/settle requests with CDP API credentials.
-  const facilitator = createCdpFacilitatorClient();
-  const server = new x402ResourceServer(facilitator);
+  // PayAI public facilitator supports x402 v2 on Base and Solana.
+  const facilitatorClient = new HTTPFacilitatorClient(facilitator);
+  const server = new x402ResourceServer(facilitatorClient);
   server.register("eip155:8453", new ExactEvmScheme());
   server.register(SOLANA_MAINNET, new ExactSvmScheme());
   return server;
 })();
 
-const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
+const paymentHandler = evmValid && svmValid && facilitatorConfigured
   ? paymentProxy(
       {
         "/api/opensea/collections": {
@@ -145,55 +146,6 @@ const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
           ],
           description: "Unlock demo digital collectible access",
           mimeType: "application/json",
-          extensions: {
-            bazaar: {
-              info: {
-                input: { type: "http", method: "GET" },
-                output: {
-                  type: "json",
-                  example: {
-                    success: true,
-                    resource: "demo-collectible-access",
-                    message: "The x402 payment middleware allowed this request.",
-                    price: "0.01 USDC",
-                    note: "This is demo access content, not proof of NFT ownership."
-                  }
-                }
-              },
-              schema: {
-                $schema: "https://json-schema.org/draft/2020-12/schema",
-                type: "object",
-                properties: {
-                  input: {
-                    type: "object",
-                    properties: {
-                      type: { type: "string", const: "http" },
-                      method: { type: "string", enum: ["GET", "HEAD", "DELETE"] },
-                      queryParams: {
-                        type: "object",
-                        additionalProperties: { type: "string" }
-                      },
-                      headers: {
-                        type: "object",
-                        additionalProperties: { type: "string" }
-                      }
-                    },
-                    required: ["type", "method"],
-                    additionalProperties: false
-                  },
-                  output: {
-                    type: "object",
-                    properties: {
-                      type: { type: "string" },
-                      example: { type: "object" }
-                    },
-                    required: ["type"]
-                  }
-                },
-                required: ["input"]
-              }
-            }
-          },
         },
       },
       paymentServer,
@@ -205,9 +157,9 @@ export async function proxy(request: NextRequest) {
   if (protectedPaths.includes(request.nextUrl.pathname) && !paymentHandler) {
     return NextResponse.json(
       {
-        error: "x402 payments are disabled until X402_EVM_PAY_TO, X402_SOLANA_PAY_TO, CDP_API_KEY_ID, and CDP_API_KEY_SECRET are configured. No payment was taken.",
+        error: "x402 payments are disabled until valid X402_EVM_PAY_TO and X402_SOLANA_PAY_TO addresses are configured. No payment was taken.",
         configured: false,
-        facilitator: "Coinbase CDP",
+        facilitator: "PayAI",
       },
       { status: 503 },
     );
