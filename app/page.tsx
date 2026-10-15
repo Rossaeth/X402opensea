@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Endpoint = { path: string; title: string; description: string; example: string; price: string };
+type Endpoint = { path: string; title: string; description: string; example: string; price: string; method?: "GET" | "POST" };
 
 const endpoints: Endpoint[] = [
   { path: "/api/opensea/collections", title: "Collections", description: "List OpenSea collections with basic metadata.", example: "/api/opensea/collections?chain=base&limit=6", price: "Public/demo route — check response" },
@@ -19,6 +19,10 @@ const endpoints: Endpoint[] = [
   { path: "/api/opensea/wallet-portfolio", title: "Wallet portfolio", description: "Request portfolio data for a wallet address.", example: "/api/opensea/wallet-portfolio?address=0x0000000000000000000000000000000000000000", price: "$0.03 / request (configured price)" },
   { path: "/api/opensea/wallet-listings", title: "Wallet listings", description: "Fetch listings associated with a wallet.", example: "/api/opensea/wallet-listings?address=0x0000000000000000000000000000000000000000", price: "$0.02 / request (configured price)" },
   { path: "/api/opensea/wallet-offers", title: "Wallet offers", description: "Fetch offers associated with a wallet.", example: "/api/opensea/wallet-offers?address=0x0000000000000000000000000000000000000000", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/buy-actions", title: "Buy NFT (prepare transaction)", description: "POST listing and buyer wallet details to request OpenSea fulfillment transaction data. Review and sign with your wallet; this endpoint does not buy automatically.", example: "/api/opensea/buy-actions", price: "$0.02 / request (configured price)", method: "POST" },
+  { path: "/api/opensea/sell-actions", title: "Accept offer (prepare transaction)", description: "POST offer, seller wallet, and NFT details to request transaction data for accepting an offer. Seller must review and sign.", example: "/api/opensea/sell-actions", price: "$0.02 / request (configured price)", method: "POST" },
+  { path: "/api/opensea/listing-submit", title: "Create NFT listing", description: "POST a Seaport order and signature created by the seller's wallet to submit a listing to OpenSea.", example: "/api/opensea/listing-submit", price: "$0.02 / request (configured price)", method: "POST" },
+
 ];
 
 export default function Home() {
@@ -62,13 +66,13 @@ export default function Home() {
           {endpoints.map((endpoint) => (
             <article key={endpoint.path} style={{ border: "1px solid #292d39", background: "#12141b", borderRadius: 14, padding: 18, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
-                <span style={{ background: "#183a2d", color: "#80e2b2", borderRadius: 5, padding: "4px 7px", fontSize: 11, fontWeight: 900 }}>GET</span>
+                <span style={{ background: endpoint.method === "POST" ? "#3a2d4e" : "#183a2d", color: endpoint.method === "POST" ? "#d7c3ff" : "#80e2b2", borderRadius: 5, padding: "4px 7px", fontSize: 11, fontWeight: 900 }}>{endpoint.method ?? "GET"}</span>
                 <h3 style={{ fontSize: 17, margin: 0 }}>{endpoint.title}</h3>
               </div>
               <p style={{ color: "#b4b8c5", lineHeight: 1.5, minHeight: 44, fontSize: 14 }}>{endpoint.description}</p>
               <code style={{ display: "block", color: "#c4baff", overflowWrap: "anywhere", fontSize: 12, lineHeight: 1.6, padding: "10px 11px", background: "#0b0c10", borderRadius: 8 }}>{endpoint.example}</code>
               <p style={{ color: "#9298aa", fontSize: 12, margin: "12px 0" }}>{endpoint.price}</p>
-              <a href={endpoint.example} target="_blank" rel="noreferrer" style={{ color: "#d4ccff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>Open example ↗</a>
+              {endpoint.method === "POST" ? <a href="/openapi.json" target="_blank" rel="noreferrer" style={{ color: "#d4ccff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>View POST schema in OpenAPI ↗</a> : <a href={endpoint.example} target="_blank" rel="noreferrer" style={{ color: "#d4ccff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>Open example ↗</a>}
             </article>
           ))}
         </div>
