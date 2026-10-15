@@ -10,11 +10,14 @@ const facilitatorUrl = process.env.X402_FACILITATOR_URL || "https://x402.org/fac
 const evmValid = Boolean(evmPayTo && /^0x[a-fA-F0-9]{40}$/.test(evmPayTo));
 const svmValid = Boolean(svmPayTo && svmPayTo.trim().length > 20);
 
+// CAIP-2 identifier for Solana mainnet-beta.
+const SOLANA_MAINNET = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+
 const paymentServer = (() => {
   const facilitator = new HTTPFacilitatorClient({ url: facilitatorUrl });
   const server = new x402ResourceServer(facilitator);
   server.register("eip155:8453", new ExactEvmScheme());
-  server.register("solana:mainnet", new ExactSvmScheme());
+  server.register(SOLANA_MAINNET, new ExactSvmScheme());
   return server;
 })();
 
@@ -24,7 +27,7 @@ const paymentHandler = evmValid && svmValid
         "/api/paid": {
           accepts: [
             { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
-            { scheme: "exact", price: "$0.01", network: "solana:mainnet", payTo: svmPayTo! },
+            { scheme: "exact", price: "$0.01", network: SOLANA_MAINNET, payTo: svmPayTo! },
           ],
           description: "Unlock demo digital collectible access",
           mimeType: "application/json",
