@@ -26,6 +26,14 @@ const paymentServer = (() => {
 const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
   ? paymentProxy(
       {
+        "/api/opensea/collections": {
+          accepts: [
+            { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
+            { scheme: "exact", price: "$0.01", network: SOLANA_MAINNET, payTo: svmPayTo! },
+          ],
+          description: "Fetch OpenSea collection listings",
+          mimeType: "application/json",
+        },
         "/api/paid": {
           accepts: [
             { scheme: "exact", price: "$0.01", network: "eip155:8453", payTo: evmPayTo! },
@@ -89,7 +97,8 @@ const paymentHandler = evmValid && svmValid && cdpCredentialsConfigured
   : null;
 
 export async function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === "/api/paid" && !paymentHandler) {
+  const protectedPaths = ["/api/paid", "/api/opensea/collections"];
+  if (protectedPaths.includes(request.nextUrl.pathname) && !paymentHandler) {
     return NextResponse.json(
       {
         error: "x402 payments are disabled until X402_EVM_PAY_TO, X402_SOLANA_PAY_TO, CDP_API_KEY_ID, and CDP_API_KEY_SECRET are configured. No payment was taken.",
@@ -104,4 +113,4 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/api/paid"] };
+export const config = { matcher: ["/api/paid", "/api/opensea/collections"] };
