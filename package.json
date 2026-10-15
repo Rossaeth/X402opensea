@@ -16,7 +16,7 @@
     "next": "16.2.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@coinbase/cdp-sdk": "^1.0.0"
+    "@payai/facilitator": "^2.4.6"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
