@@ -26,7 +26,7 @@ export async function GET() {
             price: { mode: "fixed", currency: "USD", amount: "0.01" }
           },
           parameters: [
-            { name: "chain", in: "query", required: false, schema: { type: "string", enum: ["ethereum", "base", "polygon", "arbitrum", "optimism", "solana"], default: "base" } },
+            { name: "chain", in: "query", required: true, description: "OpenSea chain to query.", schema: { type: "string", enum: ["ethereum", "base", "polygon", "arbitrum", "optimism", "solana"], default: "base" }, example: "ethereum" },
             { name: "limit", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 20, default: 6 } }
           ],
           responses: {
@@ -59,7 +59,9 @@ export async function GET() {
             protocols: ["x402"],
             price: { mode: "fixed", currency: "USD", amount: "0.01" }
           },
-          parameters: [],
+          parameters: [
+            { name: "access", in: "query", required: true, description: "Access scope for the demo collectible endpoint.", schema: { type: "string", enum: ["demo-collectible-access"] }, example: "demo-collectible-access" }
+          ],
           responses: {
             "200": {
               description: "Access granted after x402 payment verification and settlement",
