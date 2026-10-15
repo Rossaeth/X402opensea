@@ -9,14 +9,15 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@x402/core": "^2.3.0",
-    "@x402/evm": "^2.3.0",
-    "@x402/next": "^2.3.0",
-    "@x402/svm": "^2.3.0",
+    "@x402/core": "2.28.0",
+    "@x402/evm": "2.28.0",
+    "@x402/next": "2.28.0",
+    "@x402/svm": "2.28.0",
     "next": "16.2.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "@payai/facilitator": "^2.4.6"
+    "@payai/facilitator": "2.4.6",
+    "@x402/paywall": "2.28.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
