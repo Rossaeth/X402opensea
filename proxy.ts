@@ -200,11 +200,16 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
   : null;
 
 export async function proxy(request: NextRequest) {
-  const protectedPaths = ["/api/opensea/listing-actions","/api/opensea/listing-submit","/api/opensea/buy-actions","/api/opensea/sell-actions","/api/paid","/api/opensea/collections","/api/opensea/collection-details","/api/opensea/collection-stats","/api/opensea/activity","/api/opensea/listings","/api/opensea/offers","/api/opensea/wallet-nfts","/api/opensea/nft-details","/api/opensea/trending","/api/opensea/top-collections","/api/opensea/floor-prices","/api/opensea/wallet-portfolio","/api/opensea/wallet-listings","/api/opensea/wallet-offers"];
-  if (protectedPaths.includes(request.nextUrl.pathname) && !paymentHandler) {
+  // Development mode is free by default. Enable x402 only when explicitly set
+  // to X402_PAYMENTS_ENABLED=true in Vercel environment variables.
+  const paymentsEnabled = process.env.X402_PAYMENTS_ENABLED === "true";
+
+  if (!paymentsEnabled) return NextResponse.next();
+
+  if (!paymentHandler) {
     return NextResponse.json(
       {
-        error: "x402 payments are disabled until valid X402_EVM_PAY_TO and X402_SOLANA_PAY_TO addresses are configured. No payment was taken.",
+        error: "x402 payments were enabled but payment recipient addresses are not configured. No payment was taken.",
         configured: false,
         facilitator: "PayAI",
       },
@@ -212,8 +217,7 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  if (paymentHandler) return paymentHandler(request);
-  return NextResponse.next();
+  return paymentHandler(request);
 }
 
 export const config = { matcher: ["/api/opensea/listing-actions","/api/opensea/listing-submit","/api/opensea/buy-actions","/api/opensea/sell-actions","/api/paid","/api/opensea/collections","/api/opensea/collection-details","/api/opensea/collection-stats","/api/opensea/activity","/api/opensea/listings","/api/opensea/offers","/api/opensea/wallet-nfts","/api/opensea/nft-details","/api/opensea/trending","/api/opensea/top-collections","/api/opensea/floor-prices","/api/opensea/wallet-portfolio","/api/opensea/wallet-listings","/api/opensea/wallet-offers"] };
