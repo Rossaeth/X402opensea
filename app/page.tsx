@@ -61,7 +61,7 @@ export default function Home() {
       <div>
         <div className="eyebrow">DEVELOPER API DIRECTORY</div>
         <h2>Explore the<br/>available endpoints.</h2>
-        <p>Use these HTTP GET endpoints to inspect OpenSea collection data, check service configuration, discover x402 resources, and read the API contract. Open each endpoint to see its JSON response.</p>
+        <p>Use these HTTP GET endpoints to inspect OpenSea collection data, check service configuration, discover x402 resources, and read the API contract. Open each endpoint to see its JSON response. Paid data routes return an x402 payment challenge when protection is enabled.</p>
       </div>
       <div className="code">
         <div className="code-head">✳　 LIVE API ENDPOINTS</div>
@@ -94,9 +94,33 @@ export default function Home() {
             <p style={{fontSize:"13px",opacity:.75}}>Read the machine-readable API contract, operations, and response definitions.</p>
             <a href="/openapi.json" target="_blank" rel="noreferrer">Open OpenAPI JSON ↗</a>
           </div>
+          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
+            <span className="protocol">GET · NFT DATA</span>
+            <p style={{margin:"8px 0 4px",fontWeight:700}>Trending collections</p>
+            <p style={{fontSize:"13px"}}>/api/opensea/trending</p>
+            <a href="/api/opensea/trending?chain=ethereum&limit=10" target="_blank" rel="noreferrer">Try trending endpoint ↗</a>
+          </div>
+          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
+            <span className="protocol">GET · COLLECTION ANALYTICS</span>
+            <p style={{margin:"8px 0 4px",fontWeight:700}>Collection stats</p>
+            <p style={{fontSize:"13px"}}>/api/opensea/collection-stats?slug=doodles-official</p>
+            <a href="/api/opensea/collection-stats?slug=doodles-official" target="_blank" rel="noreferrer">Try stats endpoint ↗</a>
+          </div>
+          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
+            <span className="protocol">GET · MARKET ACTIVITY</span>
+            <p style={{margin:"8px 0 4px",fontWeight:700}>Listings, offers, and activity</p>
+            <p style={{fontSize:"13px"}}>/api/opensea/listings · /api/opensea/offers · /api/opensea/activity</p>
+            <p style={{fontSize:"13px",opacity:.75}}>Pass slug=collection-slug to query each resource.</p>
+          </div>
+          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
+            <span className="protocol">GET · WALLET DATA</span>
+            <p style={{margin:"8px 0 4px",fontWeight:700}>Portfolio and owned NFTs</p>
+            <p style={{fontSize:"13px"}}>/api/opensea/wallet-portfolio · /api/opensea/wallet-nfts</p>
+            <p style={{fontSize:"13px",opacity:.75}}>Pass address=wallet-address; wallet-nfts also accepts chain=ethereum.</p>
+          </div>
           <div>
             <span className="protocol">GET · RESOURCE DISCOVERY</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}>x402 discovery</p>
+            <p style={{margin:"8px 0 4px",fontWeight:700}>{"x402 discovery"}</p>
             <p style={{fontSize:"13px"}}>{"/.well-known/x402"}</p>
             <p style={{fontSize:"13px",opacity:.75}}>Discover the resource protected by x402 and its general payment instructions.</p>
             <a href="/.well-known/x402" target="_blank" rel="noreferrer">Open discovery JSON ↗</a>
