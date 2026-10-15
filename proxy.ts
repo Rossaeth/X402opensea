@@ -83,6 +83,9 @@ const paymentHandler = evmValid && svmValid
         },
       },
       paymentServer,
+      undefined,
+      undefined,
+      false,
     )
   : null;
 
