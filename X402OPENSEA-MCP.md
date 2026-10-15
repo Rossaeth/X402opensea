@@ -1,17 +1,19 @@
 # X402 OpenSea — in-chat NFT UI
 
-This integration adds an MCP endpoint at `/mcp` and a visual NFT market resource. It does not change the website homepage.
+This integration extends the existing MCP endpoint and adds a visual resource for NFT cards. It does not redesign the main website.
 
 ## Endpoint
 - MCP endpoint: `https://402opensea.vercel.app/mcp`
-- Resource: `ui://x402opensea/nft-market.html`
-- Tools: `search_nft_collections`, `get_collection_nfts`, `get_x402opensea_status`
+- Visual resource: `ui://x402opensea/nft-market.html`
+- Existing read-only tools include `top_collections`, `trending_collections`, and the added `nfts_in_collection`. The server retains its existing collection, listings, offers, and wallet analytics tools.
 
-## Configuration
-Set `X402OPENSEA_API_BASE_URL` only if the backend API lives at a different origin. The default is `https://402opensea.vercel.app`.
+## What the widget does
+- Displays actual collection/NFT image URLs and metadata returned by OpenSea API endpoints.
+- Links to the original OpenSea collection page for inspection.
+- Does not claim that buying or selling is available inside the widget.
+- Provides ChatGPT output-template metadata; actual rendering must be verified after connecting the MCP server in the intended ChatGPT client. Other clients may need their own supported UI conventions.
 
-## Important
-- `X402_PAYMENTS_ENABLED` must remain unset or `false` until the owner explicitly approves enabling payments.
-- Collection discovery and NFT metadata are read-only.
-- The UI links to OpenSea for viewing listings. It does not claim to buy NFTs or sign wallet transactions.
-- An MCP URL alone does not guarantee every client renders app UI. Connect the MCP server in the target client and test its UI support. The widget metadata currently includes ChatGPT Apps SDK output-template metadata; Claude compatibility must be verified against Claude's MCP Apps support.
+## Safety
+- Keep `X402_PAYMENTS_ENABLED` unset or `false` until the owner explicitly approves enabling payments.
+- The widget is read-only. It does not sign wallet transactions or make purchases.
+- If an API returns HTTP 402, no payment is made automatically by this widget.
