@@ -8,6 +8,7 @@ import { facilitator } from "@payai/facilitator";
 import { createPaywall } from "@x402/paywall";
 import { evmPaywall } from "@x402/paywall/evm";
 import { svmPaywall } from "@x402/paywall/svm";
+import { declareDiscoveryExtension, bazaarResourceServerExtension } from "@x402/extensions/bazaar";
 
 const evmPayTo = process.env.X402_EVM_PAY_TO;
 const svmPayTo = process.env.X402_SOLANA_PAY_TO;
@@ -24,6 +25,7 @@ const paymentServer = (() => {
   const server = new x402ResourceServer(facilitatorClient);
   server.register("eip155:8453", new ExactEvmScheme());
   server.register(SOLANA_MAINNET, new ExactSvmScheme());
+  server.registerExtension(bazaarResourceServerExtension);
   return server;
 })();
 
@@ -43,6 +45,7 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
           ],
           description: "Fetch OpenSea collection listings",
           mimeType: "application/json",
+          extensions: { ...declareDiscoveryExtension({ input: { chain: "base", limit: 6 }, inputSchema: { type: "object", properties: { chain: { type: "string", enum: ["ethereum", "base", "polygon", "arbitrum", "optimism", "solana"] }, limit: { type: "integer", minimum: 1, maximum: 20, default: 6 } }, required: ["chain"], additionalProperties: false }, output: { example: { success: true, source: "OpenSea API v2", chain: "base", count: 1, collections: [{ name: "Example collection", slug: "example-collection", chain: "base" }] }, schema: { type: "object", properties: { success: { type: "boolean" }, source: { type: "string" }, chain: { type: "string" }, count: { type: "integer" }, collections: { type: "array", items: { type: "object", additionalProperties: true } } }, required: ["success", "source", "chain", "count", "collections"] } } }) },
         },
         "/api/opensea/collection-details": {
           accepts: [
@@ -155,6 +158,7 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
           ],
           description: "Unlock demo digital collectible access",
           mimeType: "application/json",
+          extensions: { ...declareDiscoveryExtension({ input: { access: "demo-collectible-access" }, inputSchema: { type: "object", properties: { access: { type: "string", const: "demo-collectible-access" } }, required: ["access"], additionalProperties: false }, output: { example: { success: true, resource: "demo-collectible-access", message: "The x402 payment middleware allowed this request.", price: "0.01 USDC", note: "Demo access content, not proof of NFT ownership." }, schema: { type: "object", properties: { success: { type: "boolean" }, resource: { type: "string" }, message: { type: "string" }, price: { type: "string" }, note: { type: "string" } }, required: ["success", "resource", "message", "price", "note"] } } }) },
         },
       },
       paymentServer,
