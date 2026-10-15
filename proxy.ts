@@ -11,7 +11,7 @@ const evmValid = Boolean(evmPayTo && /^0x[a-fA-F0-9]{40}$/.test(evmPayTo));
 const svmValid = Boolean(svmPayTo && svmPayTo.trim().length > 20);
 
 // CAIP-2 identifier for Solana mainnet-beta.
-const SOLANA_MAINNET = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp";
+const SOLANA_MAINNET = "solana:mainnet";
 
 const paymentServer = (() => {
   const facilitator = new HTTPFacilitatorClient({ url: facilitatorUrl });
@@ -83,9 +83,6 @@ const paymentHandler = evmValid && svmValid
         },
       },
       paymentServer,
-      undefined,
-      undefined,
-      false,
     )
   : null;
 
