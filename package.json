@@ -2,30 +2,12 @@
   "name": "x402opensea",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint ."
-  },
+  "scripts": {"dev":"next dev","build":"next build","start":"next start","lint":"eslint ."},
   "dependencies": {
-    "@x402/core": "2.28.0",
-    "@x402/evm": "2.28.0",
-    "@x402/next": "2.28.0",
-    "@x402/svm": "2.28.0",
-    "next": "16.2.6",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@payai/facilitator": "2.4.6",
-    "@x402/paywall": "2.28.0",
-    "@x402/extensions": "2.28.0",
-    "ethers": "^6.14.4"
+    "@x402/core":"2.28.0","@x402/evm":"2.28.0","@x402/next":"2.28.0","@x402/svm":"2.28.0",
+    "next":"16.2.6","react":"^19.1.0","react-dom":"^19.1.0","@payai/facilitator":"2.4.6",
+    "@x402/paywall":"2.28.0","@x402/extensions":"2.28.0","ethers":"^6.14.4",
+    "@modelcontextprotocol/sdk":"^1.20.2","@modelcontextprotocol/ext-apps":"^1.0.1","mcp-handler":"^1.0.0","zod":"^3.25.76"
   },
-  "devDependencies": {
-    "@types/node": "^22.15.0",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
-    "eslint": "^9.0.0",
-    "typescript": "^5.8.3"
-  }
+  "devDependencies":{"@types/node":"^22.15.0","@types/react":"^19.1.0","@types/react-dom":"^19.1.0","eslint":"^9.0.0","typescript":"^5.8.3"}
 }
