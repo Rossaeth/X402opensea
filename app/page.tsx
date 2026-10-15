@@ -41,6 +41,7 @@ export default function Home() {
       <header style={{ borderBottom: "1px solid #252833", padding: "22px clamp(18px, 5vw, 64px)", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
         <a href="/" style={{ color: "#fff", fontWeight: 800, fontSize: 22, textDecoration: "none" }}>x402<span style={{ color: "#9b8cff" }}>opensea</span><span style={{ color: "#7f8494", fontSize: 12, marginLeft: 10 }}>API GATEWAY</span></a>
         <nav style={{ display: "flex", flexWrap: "wrap", gap: 18, fontSize: 14 }}>
+          <a href="/mint" style={{ color: "#c6c9d3" }}>Create NFT</a>
           <a href="#endpoints" style={{ color: "#c6c9d3" }}>Endpoints</a>
           <a href="/openapi.json" style={{ color: "#c6c9d3" }}>OpenAPI JSON</a>
           <a href="/.well-known/x402" style={{ color: "#c6c9d3" }}>x402 Discovery</a>
