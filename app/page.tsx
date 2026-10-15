@@ -97,7 +97,7 @@ export default function Home() {
           <div>
             <span className="protocol">GET · RESOURCE DISCOVERY</span>
             <p style={{margin:"8px 0 4px",fontWeight:700}>x402 discovery</p>
-            <p style={{fontSize:"13px"}}>/.well-known/x402</p>
+            <p style={{fontSize:"13px"}}>{"/.well-known/x402"}</p>
             <p style={{fontSize:"13px",opacity:.75}}>Discover the resource protected by x402 and its general payment instructions.</p>
             <a href="/.well-known/x402" target="_blank" rel="noreferrer">Open discovery JSON ↗</a>
           </div>
