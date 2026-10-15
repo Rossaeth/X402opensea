@@ -149,6 +149,7 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
         },
       },
       paymentServer,
+      { appName: "x402 OpenSea", testnet: false },
     )
   : null;
 
