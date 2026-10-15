@@ -28,6 +28,55 @@ const paymentHandler = evmValid && svmValid
           ],
           description: "Unlock demo digital collectible access",
           mimeType: "application/json",
+          extensions: {
+            bazaar: {
+              info: {
+                input: { type: "http", method: "GET" },
+                output: {
+                  type: "json",
+                  example: {
+                    success: true,
+                    resource: "demo-collectible-access",
+                    message: "The x402 payment middleware allowed this request.",
+                    price: "0.01 USDC",
+                    note: "This is demo access content, not proof of NFT ownership."
+                  }
+                }
+              },
+              schema: {
+                $schema: "https://json-schema.org/draft/2020-12/schema",
+                type: "object",
+                properties: {
+                  input: {
+                    type: "object",
+                    properties: {
+                      type: { type: "string", const: "http" },
+                      method: { type: "string", enum: ["GET", "HEAD", "DELETE"] },
+                      queryParams: {
+                        type: "object",
+                        additionalProperties: { type: "string" }
+                      },
+                      headers: {
+                        type: "object",
+                        additionalProperties: { type: "string" }
+                      }
+                    },
+                    required: ["type", "method"],
+                    additionalProperties: false
+                  },
+                  output: {
+                    type: "object",
+                    properties: {
+                      type: { type: "string" },
+                      example: { type: "object" }
+                    },
+                    required: ["type"]
+                  }
+                },
+                required: ["input"]
+              }
+            }
+          },
         },
       },
       paymentServer,
