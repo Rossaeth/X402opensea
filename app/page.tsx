@@ -46,10 +46,11 @@ export default function Home() {
       <section style={{ padding: "64px clamp(18px, 5vw, 64px) 42px", maxWidth: 1100, margin: "0 auto" }}>
         <div style={{ color: "#a99cff", fontSize: 12, fontWeight: 800, letterSpacing: 2, marginBottom: 18 }}>OPEN SEA DATA · HTTP API · x402</div>
         <h1 style={{ fontSize: "clamp(38px, 6vw, 68px)", letterSpacing: -2, lineHeight: 1.04, margin: "0 0 20px", maxWidth: 850 }}>OpenSea endpoints<br /><span style={{ color: "#a99cff" }}>for AI agents.</span></h1>
-        <p style={{ maxWidth: 720, color: "#b4b8c5", fontSize: 17, lineHeight: 1.7 }}>A machine-readable directory for querying NFT collections, listings, offers, activity, and wallet data. Endpoint names and API descriptions are in English. Protected routes may return HTTP 402 and require a compatible x402 payment client.</p>
+        <p style={{ maxWidth: 720, color: "#b4b8c5", fontSize: 17, lineHeight: 1.7 }}>A machine-readable gateway for NFT collections, listings, offers, activity, and wallet data. Open a protected demo endpoint in your browser to see the x402 paywall and connect a compatible wallet. A successful payment is only confirmed when the server verifies and settles it.</p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 26 }}>
           <a href="/openapi.json" style={{ background: "#a99cff", color: "#11121a", borderRadius: 9, padding: "12px 16px", fontWeight: 800, textDecoration: "none" }}>View OpenAPI spec ↗</a>
           <a href="/.well-known/x402" style={{ border: "1px solid #424655", color: "#f4f5f7", borderRadius: 9, padding: "12px 16px", fontWeight: 700, textDecoration: "none" }}>x402 discovery ↗</a>
+          <a href="/api/paid" style={{ border: "1px solid #7d72bf", color: "#f4f5f7", borderRadius: 9, padding: "12px 16px", fontWeight: 700, textDecoration: "none" }}>Try wallet payment ↗</a>
         </div>
       </section>
       <section id="endpoints" style={{ maxWidth: 1100, margin: "0 auto", padding: "12px clamp(18px, 5vw, 64px) 64px" }}>
@@ -76,7 +77,7 @@ export default function Home() {
             <h3 style={{ marginTop: 0 }}>Service status</h3><p style={{ color: "#aeb3c1", fontSize: 14 }}>Public configuration status only; this does not prove facilitator availability or payment settlement.</p><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 12, color: "#b8c2d9", maxHeight: 220, overflow: "auto" }}>{status}</pre><a href="/api/status" style={{ color: "#c4baff" }}>Open /api/status ↗</a>
           </article>
           <article style={{ border: "1px solid #292d39", borderRadius: 14, padding: 18, background: "#12141b" }}>
-            <h3 style={{ marginTop: 0 }}>x402 demo resource</h3><p style={{ color: "#aeb3c1", fontSize: 14 }}>Test the payment challenge on the demo resource. A 402 response means payment is requested, not that a payment has completed.</p><code style={{ display: "block", background: "#0b0c10", padding: 10, borderRadius: 8, color: "#c4baff" }}>/api/paid</code><p><a href="/api/paid" target="_blank" rel="noreferrer" style={{ color: "#c4baff" }}>Open paid endpoint ↗</a></p>
+            <h3 style={{ marginTop: 0 }}>x402 demo resource</h3><p style={{ color: "#aeb3c1", fontSize: 14 }}>Open the demo resource in a browser to view the wallet payment UI. Only a verified and settled payment should return the protected response.</p><code style={{ display: "block", background: "#0b0c10", padding: 10, borderRadius: 8, color: "#c4baff" }}>/api/paid</code><p><a href="/api/paid" target="_blank" rel="noreferrer" style={{ color: "#c4baff" }}>Open wallet paywall ↗</a></p>
           </article>
         </div>
         <p style={{ color: "#777e90", fontSize: 12, lineHeight: 1.6, marginTop: 24 }}>Live OpenSea data requires a valid server-side API key. Prices shown are configured/intended gateway prices, not confirmation that payment processing is currently operational. Never expose API keys in browser code.</p>
