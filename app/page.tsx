@@ -1,134 +1,89 @@
 "use client";
+
 import { useEffect, useState } from "react";
 
-const networks = [
-  { id: "base", name: "Base", chain: "Base Mainnet", note: "USDC · EVM", color: "#1652f0" },
-  { id: "solana", name: "Solana", chain: "Solana Mainnet", note: "USDC · SVM", color: "#8056e8" },
-  { id: "arc", name: "Arc", chain: "Arc Testnet", note: "USDC · testnet", color: "#168d79" },
-];
-const items = [
-  { name: "Genesis Ocean", creator: "studio.rossa", art: "ocean" },
-  { name: "Pixel Bloom", creator: "pixelgarden", art: "bloom" },
-  { name: "Orbit No. 8", creator: "orbitalworks", art: "orbit" },
+type Endpoint = { path: string; title: string; description: string; example: string; price: string };
+
+const endpoints: Endpoint[] = [
+  { path: "/api/opensea/collections", title: "Collections", description: "List OpenSea collections with basic metadata.", example: "/api/opensea/collections?chain=base&limit=6", price: "Public/demo route — check response" },
+  { path: "/api/opensea/trending", title: "Trending collections", description: "Discover currently trending collections.", example: "/api/opensea/trending?chain=ethereum&limit=10", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/top-collections", title: "Top collections", description: "Retrieve top-ranked collections.", example: "/api/opensea/top-collections?chain=ethereum&limit=10", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/collection-details", title: "Collection details", description: "Get metadata and details for one collection.", example: "/api/opensea/collection-details?slug=doodles-official", price: "$0.01 / request (configured price)" },
+  { path: "/api/opensea/collection-stats", title: "Collection statistics", description: "Fetch collection statistics and floor-price information.", example: "/api/opensea/collection-stats?slug=doodles-official", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/floor-prices", title: "Floor prices", description: "Request floor-price data for a collection.", example: "/api/opensea/floor-prices?slug=doodles-official", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/listings", title: "Collection listings", description: "Fetch active listings for a collection.", example: "/api/opensea/listings?slug=doodles-official", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/offers", title: "Collection offers", description: "Fetch offers associated with a collection.", example: "/api/opensea/offers?slug=doodles-official", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/activity", title: "Collection activity", description: "Fetch collection events and sales activity.", example: "/api/opensea/activity?slug=doodles-official", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/nft-details", title: "NFT details", description: "Fetch NFT metadata using a chain, contract address, and token ID.", example: "/api/opensea/nft-details?chain=ethereum&contract=0x0000000000000000000000000000000000000000&token_id=1", price: "$0.01 / request (configured price)" },
+  { path: "/api/opensea/wallet-nfts", title: "Wallet NFTs", description: "List NFTs owned by a wallet address.", example: "/api/opensea/wallet-nfts?address=0x0000000000000000000000000000000000000000&chain=ethereum", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/wallet-portfolio", title: "Wallet portfolio", description: "Request portfolio data for a wallet address.", example: "/api/opensea/wallet-portfolio?address=0x0000000000000000000000000000000000000000", price: "$0.03 / request (configured price)" },
+  { path: "/api/opensea/wallet-listings", title: "Wallet listings", description: "Fetch listings associated with a wallet.", example: "/api/opensea/wallet-listings?address=0x0000000000000000000000000000000000000000", price: "$0.02 / request (configured price)" },
+  { path: "/api/opensea/wallet-offers", title: "Wallet offers", description: "Fetch offers associated with a wallet.", example: "/api/opensea/wallet-offers?address=0x0000000000000000000000000000000000000000", price: "$0.02 / request (configured price)" },
 ];
 
 export default function Home() {
-  const [network, setNetwork] = useState("base");
-  const [status, setStatus] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [liveCollections, setLiveCollections] = useState<Array<{name:string;slug:string|null;imageUrl:string|null;description:string|null;openseaUrl:string|null;chain:string}>>([]);
-  const [collectionsLoading, setCollectionsLoading] = useState(true);
-  const [collectionsError, setCollectionsError] = useState("");
-
+  const [status, setStatus] = useState<string>("Loading service status…");
   useEffect(() => {
-    let active = true;
-    fetch("/api/opensea/collections?chain=base&limit=6")
-      .then(async response => {
-        const data = await response.json();
-        if (!response.ok || !data.success) throw new Error(data.error || "OpenSea collections are unavailable.");
-        if (active) setLiveCollections(data.collections || []);
+    fetch("/api/status")
+      .then(async (r) => {
+        const data = await r.json();
+        setStatus(r.ok ? JSON.stringify(data, null, 2) : "Status endpoint returned an error.");
       })
-      .catch(error => { if (active) setCollectionsError(error instanceof Error ? error.message : "OpenSea data is unavailable."); })
-      .finally(() => { if (active) setCollectionsLoading(false); });
-    return () => { active = false; };
+      .catch(() => setStatus("Could not load status endpoint."));
   }, []);
 
-  const displayItems = liveCollections.length
-    ? liveCollections.map((item, i) => ({
-        name: item.name, creator: item.chain, art: ["ocean", "bloom", "orbit"][i % 3],
-        imageUrl: item.imageUrl, openseaUrl: item.openseaUrl, isLive: true
-      }))
-    : items.map(item => ({ ...item, imageUrl: null, openseaUrl: null, isLive: false }));
-  async function tryAccess() {
-    setBusy(true); setStatus("");
-    try {
-      const response = await fetch("/api/paid", { headers: { accept: "application/json" } });
-      const body = await response.json().catch(() => ({}));
-      if (response.status === 402) setStatus("Payment required. Use an x402-compatible wallet/client to submit a signed payment.");
-      else if (response.ok) setStatus("Server returned access. Verify the payment response before treating it as paid.");
-      else setStatus(body.error || "Paid access is not configured yet. No payment was confirmed.");
-    } catch { setStatus("Could not reach the payment endpoint. No payment was confirmed."); }
-    finally { setBusy(false); }
-  }
-  return <main>
-    <header className="topbar"><a className="brand" href="/"><span className="mark">✳</span>x402<span className="light">opensea</span></a><nav><a href="#explore">Explore</a><a href="#how">How it works</a><a href="#api">Developers</a></nav><a className="nav-button" href="#payment">Choose payment ↗</a></header>
-    <section className="hero"><div><div className="eyebrow">✳ &nbsp; INTERNET-NATIVE COLLECTIBLES</div><h1>Collect culture.<br/><em>Pay per item.</em></h1><p className="lead">A new kind of marketplace built for the open internet. Explore digital collectibles and access items with x402 stablecoin micropayments.</p><div className="actions"><a className="primary" href="#explore">Explore collection ↘</a><a href="#how">How x402 works →</a></div><p className="footnote">◇ Non-custodial by design &nbsp; · &nbsp; Server-verified payments</p></div><div className="hero-art"><div className="orbit one"></div><div className="orbit two"></div><div className="sphere"></div><div className="art-caption"><span>COLLECTION 001</span><strong>Beyond the blue</strong><span>01 / 03</span></div><span className="chip">✳ &nbsp; Onchain access</span></div></section>
-    <div className="ticker">BUILT ON OPEN PAYMENTS　 ✳　 BASE　 ✳　 SOLANA　 ✳　 ARC TESTNET　 ✳　 POWERED BY x402 V2</div>
-    <section className="section" id="explore"><div className="section-head"><div><div className="eyebrow">THE CURATED DROP</div><h2>Small pieces of <em>the internet.</em></h2></div><a href="#payment">View payment options ↗</a></div><div className="items">{displayItems.map((item, i) => <article className="item" key={item.name}><div className={"item-art " + item.art} style={item.imageUrl ? {backgroundImage: `url("${item.imageUrl}")`, backgroundSize: "cover", backgroundPosition: "center"} : undefined}><span className="index">/0{i+1}</span><span className="tag">{item.isLive ? "OpenSea collection" : "Demo collectible"}</span>{!item.imageUrl && <div className="shape"></div>}</div><div className="item-info"><div><h3>{item.name}</h3><p>{item.isLive ? `OpenSea · ${item.creator}` : `Created by ${item.creator}`}</p></div><strong>0.01 <small>USDC</small></strong></div>{item.isLive && item.openseaUrl ? <a className="item-button" href={item.openseaUrl} target="_blank" rel="noreferrer">View on OpenSea <span>↗</span></a> : <button className="item-button" onClick={tryAccess} disabled={busy}>{busy ? "Checking…" : "Unlock demo item"} <span>↗</span></button>}</article>)}</div><p className="demo-note">{collectionsLoading ? "Connecting to OpenSea…" : liveCollections.length ? `Live collection data loaded from OpenSea API v2 on Base (${liveCollections.length} shown). Displayed price is illustrative, not a live listing.` : `OpenSea data is not available right now${collectionsError ? `: ${collectionsError}` : ""}. Showing clearly labeled demo items instead. Prices are illustrative; no NFT ownership or payment is implied.`}</p></section>
-    <section className="payment" id="payment"><div className="payment-copy"><div className="eyebrow">ONE PRICE. YOUR NETWORK.</div><h2>Pay your way<br/><em>across chains.</em></h2><p>Choose a network for the 0.01 USDC demo item. Payment is only complete after the server verifies and settles it through a supported x402 facilitator.</p><p className="secure">✓ &nbsp; No fake success states. Ever.</p></div><div className="panel"><div className="panel-head"><span>PAYMENT METHOD</span><span className="protocol">x402 V2</span></div><div className="network-list">{networks.map(n => <button key={n.id} className={"network " + (network === n.id ? "selected" : "")} onClick={() => {setNetwork(n.id);setStatus("");}}><span className="network-icon" style={{background:n.color}}>{n.id === "base" ? "◉" : n.id === "solana" ? "≋" : "◈"}</span><span className="network-name"><strong>{n.name}</strong><small>{n.note}</small></span><span className="chain">{n.chain}</span><span className="radio">{network === n.id ? "✓" : ""}</span></button>)}</div><div className="amount"><span>Item access</span><strong>0.01 <small>USDC</small></strong></div><div className="amount muted"><span>Network</span><strong>{networks.find(n=>n.id===network)?.chain}</strong></div>{network === "arc" && <p className="warning">Arc is shown as testnet until the target network, USDC asset and facilitator support are configured. Do not send mainnet funds.</p>}<button className="pay-button" onClick={tryAccess} disabled={busy}>{busy ? "Checking endpoint…" : "Continue to secure payment"} <span>↗</span></button>{status && <p className="status" role="status">{status}</p>}<p className="disclaimer">This demo does not request a wallet signature by itself. Payments remain disabled until the server and facilitator are configured.</p></div></section>
-    <section className="section how" id="how"><div className="eyebrow">A BETTER INTERNET ECONOMY</div><h2>Simple for people.<br/><em>Native to the web.</em></h2><div className="steps"><article><span>01</span><h3>Choose an item</h3><p>Find a digital collectible or resource you want to access.</p></article><article><span>02</span><h3>Authorize payment</h3><p>Your x402-compatible client signs a payment for the selected network.</p></article><article><span>03</span><h3>Server verifies</h3><p>The server checks payment with a supported facilitator before unlocking content.</p></article></div></section>
-    <section className="developers" id="api">
-      <div>
-        <div className="eyebrow">DEVELOPER API DIRECTORY</div>
-        <h2>Explore the<br/>available endpoints.</h2>
-        <p>Use these HTTP GET endpoints to inspect OpenSea collection data, check service configuration, discover x402 resources, and read the API contract. Open each endpoint to see its JSON response. Paid data routes return an x402 payment challenge when protection is enabled.</p>
-      </div>
-      <div className="code">
-        <div className="code-head">✳　 LIVE API ENDPOINTS</div>
-        <div style={{display:"grid",gap:"12px",padding:"18px 0"}}>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · OPENSEA DATA</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}}>Collections</p>
-            <p style={{fontSize:"13px",overflowWrap:"anywhere"}}>/api/opensea/collections?chain=base&amp;limit=6</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Fetch collection names, image URLs, descriptions and OpenSea links. Chains: ethereum, base, polygon, arbitrum, optimism, solana. Limit: 1–20.</p>
-            <a href={"/api/opensea/collections?chain=base&limit=6"} target="_blank" rel="noreferrer">Try collections endpoint ↗</a>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · SERVICE STATUS</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}}>Payment configuration</p>
-            <p style={{fontSize:"13px"}}>/api/status</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Inspect configured facilitator/network flags and the demo price. This is configuration status, not proof that a payment has settled.</p>
-            <a href="/api/status" target="_blank" rel="noreferrer">Try status endpoint ↗</a>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · x402 PAYMENT</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}}>Paid demo resource</p>
-            <p style={{fontSize:"13px"}}>/api/paid</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Requests access to demo content at 0.01 USDC. A client should handle the HTTP 402 payment challenge. Not an NFT mint or ownership check.</p>
-            <a href="/api/paid" target="_blank" rel="noreferrer">Try paid endpoint ↗</a>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · API SCHEMA</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}}>OpenAPI specification</p>
-            <p style={{fontSize:"13px"}}>/openapi.json</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Read the machine-readable API contract, operations, and response definitions.</p>
-            <a href="/openapi.json" target="_blank" rel="noreferrer">Open OpenAPI JSON ↗</a>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · NFT DATA</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}>Trending collections</p>
-            <p style={{fontSize:"13px"}}>/api/opensea/trending</p>
-            <a href={"/api/opensea/trending?chain=ethereum&limit=10"} target="_blank" rel="noreferrer">Try trending endpoint ↗</a>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · COLLECTION ANALYTICS</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}>Collection stats</p>
-            <p style={{fontSize:"13px"}}>/api/opensea/collection-stats?slug=doodles-official</p>
-            <a href="/api/opensea/collection-stats?slug=doodles-official" target="_blank" rel="noreferrer">Try stats endpoint ↗</a>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · MARKET ACTIVITY</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}>Listings, offers, and activity</p>
-            <p style={{fontSize:"13px"}}>/api/opensea/listings · /api/opensea/offers · /api/opensea/activity</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Pass slug=collection-slug to query each resource.</p>
-          </div>
-          <div style={{borderBottom:"1px solid #343434",paddingBottom:"12px"}}>
-            <span className="protocol">GET · WALLET DATA</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}>Portfolio and owned NFTs</p>
-            <p style={{fontSize:"13px"}}>/api/opensea/wallet-portfolio · /api/opensea/wallet-nfts</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Pass address=wallet-address; wallet-nfts also accepts chain=ethereum.</p>
-          </div>
-          <div>
-            <span className="protocol">GET · RESOURCE DISCOVERY</span>
-            <p style={{margin:"8px 0 4px",fontWeight:700}>{"x402 discovery"}</p>
-            <p style={{fontSize:"13px"}}>{"/.well-known/x402"}</p>
-            <p style={{fontSize:"13px",opacity:.75}}>Discover the resource protected by x402 and its general payment instructions.</p>
-            <a href="/.well-known/x402" target="_blank" rel="noreferrer">Open discovery JSON ↗</a>
-          </div>
+  return (
+    <main style={{ minHeight: "100vh", background: "#0b0c10", color: "#f4f5f7", fontFamily: "Arial, Helvetica, sans-serif" }}>
+      <header style={{ borderBottom: "1px solid #252833", padding: "22px clamp(18px, 5vw, 64px)", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        <a href="/" style={{ color: "#fff", fontWeight: 800, fontSize: 22, textDecoration: "none" }}>x402<span style={{ color: "#9b8cff" }}>opensea</span><span style={{ color: "#7f8494", fontSize: 12, marginLeft: 10 }}>API GATEWAY</span></a>
+        <nav style={{ display: "flex", flexWrap: "wrap", gap: 18, fontSize: 14 }}>
+          <a href="#endpoints" style={{ color: "#c6c9d3" }}>Endpoints</a>
+          <a href="/openapi.json" style={{ color: "#c6c9d3" }}>OpenAPI JSON</a>
+          <a href="/.well-known/x402" style={{ color: "#c6c9d3" }}>x402 Discovery</a>
+          <a href="/api/status" style={{ color: "#c6c9d3" }}>Status JSON</a>
+        </nav>
+      </header>
+      <section style={{ padding: "64px clamp(18px, 5vw, 64px) 42px", maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ color: "#a99cff", fontSize: 12, fontWeight: 800, letterSpacing: 2, marginBottom: 18 }}>OPEN SEA DATA · HTTP API · x402</div>
+        <h1 style={{ fontSize: "clamp(38px, 6vw, 68px)", letterSpacing: -2, lineHeight: 1.04, margin: "0 0 20px", maxWidth: 850 }}>OpenSea endpoints<br /><span style={{ color: "#a99cff" }}>for AI agents.</span></h1>
+        <p style={{ maxWidth: 720, color: "#b4b8c5", fontSize: 17, lineHeight: 1.7 }}>A machine-readable directory for querying NFT collections, listings, offers, activity, and wallet data. Endpoint names and API descriptions are in English. Protected routes may return HTTP 402 and require a compatible x402 payment client.</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 26 }}>
+          <a href="/openapi.json" style={{ background: "#a99cff", color: "#11121a", borderRadius: 9, padding: "12px 16px", fontWeight: 800, textDecoration: "none" }}>View OpenAPI spec ↗</a>
+          <a href="/.well-known/x402" style={{ border: "1px solid #424655", color: "#f4f5f7", borderRadius: 9, padding: "12px 16px", fontWeight: 700, textDecoration: "none" }}>x402 discovery ↗</a>
         </div>
-        <p style={{fontSize:"12px",opacity:.7}}>All endpoints are read-only GET requests from this directory. OpenSea data requires a valid server-side OPENSEA_API_KEY. Never place API keys in browser code.</p>
-      </div>
-    </section>
-    <footer><a className="brand" href="/"><span className="mark">✳</span>x402<span className="light">opensea</span></a><span>Open internet. Open payments.</span><span>Demo marketplace · x402 v2 concept</span></footer>
-  </main>;
+      </section>
+      <section id="endpoints" style={{ maxWidth: 1100, margin: "0 auto", padding: "12px clamp(18px, 5vw, 64px) 64px" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "end", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
+          <div><div style={{ color: "#9da3b5", fontSize: 12, letterSpacing: 1.5, fontWeight: 800 }}>ENDPOINT DIRECTORY</div><h2 style={{ margin: "8px 0 0", fontSize: 30 }}>Available routes</h2></div>
+          <span style={{ color: "#b4b8c5", fontSize: 13 }}>{endpoints.length} OpenSea data routes</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 310px), 1fr))", gap: 14 }}>
+          {endpoints.map((endpoint) => (
+            <article key={endpoint.path} style={{ border: "1px solid #292d39", background: "#12141b", borderRadius: 14, padding: 18, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 12 }}>
+                <span style={{ background: "#183a2d", color: "#80e2b2", borderRadius: 5, padding: "4px 7px", fontSize: 11, fontWeight: 900 }}>GET</span>
+                <h3 style={{ fontSize: 17, margin: 0 }}>{endpoint.title}</h3>
+              </div>
+              <p style={{ color: "#b4b8c5", lineHeight: 1.5, minHeight: 44, fontSize: 14 }}>{endpoint.description}</p>
+              <code style={{ display: "block", color: "#c4baff", overflowWrap: "anywhere", fontSize: 12, lineHeight: 1.6, padding: "10px 11px", background: "#0b0c10", borderRadius: 8 }}>{endpoint.example}</code>
+              <p style={{ color: "#9298aa", fontSize: 12, margin: "12px 0" }}>{endpoint.price}</p>
+              <a href={endpoint.example} target="_blank" rel="noreferrer" style={{ color: "#d4ccff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>Open example ↗</a>
+            </article>
+          ))}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 14, marginTop: 22 }}>
+          <article style={{ border: "1px solid #292d39", borderRadius: 14, padding: 18, background: "#12141b" }}>
+            <h3 style={{ marginTop: 0 }}>Service status</h3><p style={{ color: "#aeb3c1", fontSize: 14 }}>Public configuration status only; this does not prove facilitator availability or payment settlement.</p><pre style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: 12, color: "#b8c2d9", maxHeight: 220, overflow: "auto" }}>{status}</pre><a href="/api/status" style={{ color: "#c4baff" }}>Open /api/status ↗</a>
+          </article>
+          <article style={{ border: "1px solid #292d39", borderRadius: 14, padding: 18, background: "#12141b" }}>
+            <h3 style={{ marginTop: 0 }}>x402 demo resource</h3><p style={{ color: "#aeb3c1", fontSize: 14 }}>Test the payment challenge on the demo resource. A 402 response means payment is requested, not that a payment has completed.</p><code style={{ display: "block", background: "#0b0c10", padding: 10, borderRadius: 8, color: "#c4baff" }}>/api/paid</code><p><a href="/api/paid" target="_blank" rel="noreferrer" style={{ color: "#c4baff" }}>Open paid endpoint ↗</a></p>
+          </article>
+        </div>
+        <p style={{ color: "#777e90", fontSize: 12, lineHeight: 1.6, marginTop: 24 }}>Live OpenSea data requires a valid server-side API key. Prices shown are configured/intended gateway prices, not confirmation that payment processing is currently operational. Never expose API keys in browser code.</p>
+      </section>
+      <footer style={{ borderTop: "1px solid #252833", padding: "24px clamp(18px, 5vw, 64px)", color: "#7f8494", fontSize: 13, display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 10 }}>
+        <span>x402opensea · API Gateway</span><span>OpenSea data proxy · x402 v2 concept</span>
+      </footer>
+    </main>
+  );
 }
