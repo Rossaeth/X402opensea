@@ -5,10 +5,13 @@ import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { ExactSvmScheme } from "@x402/svm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
 import { facilitator } from "@payai/facilitator";
+import { createPaywall } from "@x402/paywall";
+import { evmPaywall } from "@x402/paywall/evm";
+import { svmPaywall } from "@x402/paywall/svm";
 
 const evmPayTo = process.env.X402_EVM_PAY_TO;
 const svmPayTo = process.env.X402_SOLANA_PAY_TO;
-const facilitatorConfigured = true;
+const facilitatorConfigured = Boolean(facilitator);
 const evmValid = Boolean(evmPayTo && /^0x[a-fA-F0-9]{40}$/.test(evmPayTo));
 const svmValid = Boolean(svmPayTo && svmPayTo.trim().length > 20);
 
@@ -23,6 +26,12 @@ const paymentServer = (() => {
   server.register(SOLANA_MAINNET, new ExactSvmScheme());
   return server;
 })();
+
+const paywall = createPaywall()
+  .withNetwork(evmPaywall)
+  .withNetwork(svmPaywall)
+  .withConfig({ appName: "x402 OpenSea", appLogo: "https://402opensea.vercel.app/favicon.ico", testnet: false })
+  .build();
 
 const paymentHandler = evmValid && svmValid && facilitatorConfigured
   ? paymentProxy(
@@ -149,7 +158,8 @@ const paymentHandler = evmValid && svmValid && facilitatorConfigured
         },
       },
       paymentServer,
-      { appName: "x402 OpenSea", testnet: false },
+      undefined,
+      paywall,
     )
   : null;
 
