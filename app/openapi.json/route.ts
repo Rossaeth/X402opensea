@@ -15,6 +15,27 @@ export async function GET() {
     },
     servers: [{ url: "https://402opensea.vercel.app" }],
     paths: {
+      "/api/opensea/collections": {
+        get: {
+          operationId: "getOpenSeaCollections",
+          summary: "Fetch OpenSea collections",
+          description: "Returns OpenSea collection metadata. Requires an x402 payment of 0.01 USD per request using Base USDC or Solana USDC when payment middleware is configured.",
+          security: [{ x402Payment: [] }],
+          "x-payment-info": {
+            protocols: ["x402"],
+            price: { mode: "fixed", currency: "USD", amount: "0.01" }
+          },
+          parameters: [
+            { name: "chain", in: "query", required: false, schema: { type: "string", enum: ["ethereum", "base", "polygon", "arbitrum", "optimism", "solana"], default: "base" } },
+            { name: "limit", in: "query", required: false, schema: { type: "integer", minimum: 1, maximum: 20, default: 6 } }
+          ],
+          responses: {
+            "200": { description: "Collections returned after payment verification", content: { "application/json": { schema: { type: "object", properties: { success: { type: "boolean" }, source: { type: "string" }, chain: { type: "string" }, count: { type: "integer" }, collections: { type: "array", items: { type: "object", additionalProperties: true } } }, required: ["success", "source", "chain", "count", "collections"] } } } },
+            "402": { description: "Payment required; submit a compatible x402 payment payload." },
+            "503": { description: "x402 payment middleware is not configured." }
+          }
+        }
+      },
       "/api/paid": {
         get: {
           operationId: "unlockDemoCollectibleAccess",
