@@ -17,6 +17,7 @@ type ToolDefinition = {
   title: string;
   description: string;
   path: string;
+  method?: "GET" | "POST";
   required?: string[];
   properties: Record<string, Property>;
 };
@@ -190,6 +191,34 @@ const TOOLS: ToolDefinition[] = [
       after: { type: "string", description: "Pagination cursor, if available." },
     },
   },
+  {
+    name: "sell_actions",
+    title: "Prepare OpenSea offer acceptance",
+    description: "Prepare transaction data to accept an OpenSea offer. Returns wallet actions only; the seller must review and sign with their own wallet. Paid x402 endpoint, normally 0.02 USD.",
+    path: "/api/opensea/sell-actions",
+    method: "POST",
+    required: ["offer", "fulfiller", "consideration"],
+    properties: {
+      offer: { type: "object", description: "OpenSea offer object including hash, chain, and protocol_address." },
+      fulfiller: { type: "object", description: "Seller wallet information, including public address." },
+      consideration: { type: "object", description: "NFT/consideration details required by OpenSea fulfillment." },
+    },
+  },
+  {
+    name: "listing_submit",
+    title: "Submit signed OpenSea NFT listing",
+    description: "Submit a listing order already signed by the seller wallet. This broadcasts the signed order to OpenSea; it does not sign for the user. Paid x402 endpoint, normally 0.02 USD.",
+    path: "/api/opensea/listing-submit",
+    method: "POST",
+    required: ["chain", "protocol", "protocol_address", "parameters", "signature"],
+    properties: {
+      chain: { type: "string", description: "EVM chain: ethereum, base, polygon, arbitrum, or optimism." },
+      protocol: { type: "string", description: "Listing protocol; currently seaport." },
+      protocol_address: { type: "string", description: "OpenSea Seaport protocol contract address." },
+      parameters: { type: "object", description: "Listing parameters returned by the listing preparation endpoint." },
+      signature: { type: "string", description: "Seller wallet signature for the listing order." },
+    },
+  },
 ];
 
 function jsonRpc(id: unknown, result: unknown) {
@@ -285,8 +314,13 @@ export async function POST(request: Request) {
   if (!tool) return rpcError(id, -32602, "Unknown tool name.");
 
   for (const required of tool.required ?? []) {
-    if (typeof args[required] !== "string" || !(args[required] as string).trim()) {
-      return jsonRpc(id, textResult(`Missing required input: ${required}`, true));
+    const value = args[required];
+    const propertyType = tool.properties[required]?.type;
+    const valid = propertyType === "object"
+      ? typeof value === "object" && value !== null && !Array.isArray(value)
+      : typeof value === "string" && value.trim().length > 0;
+    if (!valid) {
+      return jsonRpc(id, textResult(`Missing or invalid required input: ${required}`, true));
     }
   }
 
@@ -296,10 +330,18 @@ export async function POST(request: Request) {
     if (!(key in tool.properties)) {
       return jsonRpc(id, textResult(`Unsupported input: ${key}`, true));
     }
-    if (typeof value !== "string" && typeof value !== "number") {
-      return jsonRpc(id, textResult(`Input ${key} must be a string or number.`, true));
+    if (tool.method === "POST") {
+      const expectedType = tool.properties[key].type;
+      const valid = expectedType === "object"
+        ? typeof value === "object" && value !== null && !Array.isArray(value)
+        : typeof value === "string" || typeof value === "number";
+      if (!valid) return jsonRpc(id, textResult(`Input ${key} has the wrong type.`, true));
+    } else {
+      if (typeof value !== "string" && typeof value !== "number") {
+        return jsonRpc(id, textResult(`Input ${key} must be a string or number.`, true));
+      }
+      url.searchParams.set(key, String(value));
     }
-    url.searchParams.set(key, String(value));
   }
 
   const paymentSignature = args.paymentSignature;
@@ -309,13 +351,17 @@ export async function POST(request: Request) {
 
   try {
     const response = await fetch(url, {
-      method: "GET",
+      method: tool.method ?? "GET",
       headers: {
         accept: "application/json",
+        ...(tool.method === "POST" ? { "content-type": "application/json" } : {}),
         ...(typeof paymentSignature === "string" && paymentSignature
           ? { "PAYMENT-SIGNATURE": paymentSignature }
           : {}),
       },
+      ...(tool.method === "POST"
+        ? { body: JSON.stringify(Object.fromEntries(Object.entries(args).filter(([key]) => key !== "paymentSignature"))) }
+        : {}),
       cache: "no-store",
     });
     const responseText = await response.text();
